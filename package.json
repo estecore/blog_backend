@@ -1,0 +1,34 @@
+{
+  "name": "blog_backend",
+  "version": "1.0.0",
+  "description": "Backend for blog website by Estecore",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "npx nodemon --port 1337",
+    "start": "npm run build && node build/index.js",
+    "check": "git fetch && git pull && npm i",
+    "commit": "git add . && cz && git push"
+  },
+  "author": "Estecore",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.0.11",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  }
+}
