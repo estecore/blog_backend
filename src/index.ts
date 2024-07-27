@@ -1,34 +1,119 @@
-import express from "express";
-
+import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const PORT: number = 1337;
+import { validationResult } from "express-validator";
+
+import { registerValidation } from "./validations/auth";
+import { UserModel } from "./models/User";
+
+dotenv.config();
+
+if (!process.env.MONGO_CONNECT) {
+  throw new Error("MONGO_CONNECT is not defined");
+}
+
+const PORT = process.env.PORT || 1337;
+const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+const MONGO_CONNECT = process.env.MONGO_CONNECT;
+
+mongoose
+  .connect(MONGO_CONNECT)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("MongoDB connection error", err));
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
+app.post(
+  "/auth/register",
+  registerValidation,
+  async (req: Request, res: Response) => {
+    try {
+      const errors = validationResult(req);
 
-app.post("/auth/login", (req, res) => {
-  console.log(req.body);
+      if (!errors.isEmpty()) {
+        return res.status(400).json(errors.array());
+      }
 
-  const token = jwt.sign(
-    {
-      email: req.body.email,
-      password: req.body.password,
-      fullName: "Karl",
-    },
+      const password = req.body.password;
+      const salt = await bcrypt.genSaltSync(10);
+      const hash = await bcrypt.hash(password, salt);
 
-    "secret123"
-  );
+      const doc = new UserModel({
+        fullName: req.body.fullName,
+        email: req.body.email,
+        passwordHash: hash,
+        avatarUrl: req.body.avatarUrl,
+      });
 
-  res.json({
-    success: true,
-    token,
-  });
+      const user = await doc.save();
+
+      const token = jwt.sign(
+        {
+          _id: user._id,
+        },
+        JWT_SECRET,
+        {
+          expiresIn: "30d",
+        }
+      );
+
+      const { passwordHash, ...userData } = user.toObject();
+
+      res.json({ userData, token });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        message: "Failed to register",
+      });
+    }
+  }
+);
+
+app.post("/auth/login", async (req: Request, res: Response) => {
+  try {
+    const user = await UserModel.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Error login",
+      });
+    }
+
+    const isValidPass = await bcrypt.compare(
+      req.body.password,
+      user.passwordHash
+    );
+
+    if (!isValidPass) {
+      return res.status(400).json({
+        message: "Error login",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        _id: user._id,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    const { passwordHash, ...userData } = user.toObject();
+
+    res.json({ userData, token });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Failed to login",
+    });
+  }
 });
 
 app.listen(PORT, () => {
