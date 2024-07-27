@@ -9,6 +9,8 @@ import { validationResult } from "express-validator";
 import { registerValidation } from "./validations/auth";
 import { UserModel } from "./models/User";
 
+import { checkAuth } from "./utils/checkAuth";
+
 dotenv.config();
 
 if (!process.env.MONGO_CONNECT) {
@@ -112,6 +114,28 @@ app.post("/auth/login", async (req: Request, res: Response) => {
     console.log(err);
     res.status(500).json({
       message: "Failed to login",
+    });
+  }
+});
+
+//  ================= TODO change any type ====================
+app.get("/auth/me", checkAuth, async (req: any, res: Response) => {
+  try {
+    const user = await UserModel.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const { passwordHash, ...userData } = user.toObject();
+
+    res.json({ userData });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Failed to get user",
     });
   }
 });
