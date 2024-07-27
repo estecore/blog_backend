@@ -1,35 +1,36 @@
 import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-import jwt from "jsonwebtoken";
+import { registerValidation } from "./validations/auth";
 
-const PORT: number = 1337;
+import { checkAuth } from "./utils/checkAuth";
+
+import * as UserControllers from "./controllers/UserControllers";
+
+dotenv.config();
+
+if (!process.env.MONGO_CONNECT) {
+  throw new Error("MONGO_CONNECT is not defined");
+}
+
+const PORT = process.env.PORT || 1337;
+const MONGO_CONNECT = process.env.MONGO_CONNECT;
+
+mongoose
+  .connect(MONGO_CONNECT)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("MongoDB connection error", err));
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
+app.post("/auth/register", registerValidation, UserControllers.register);
 
-app.post("/auth/login", (req, res) => {
-  console.log(req.body);
+app.post("/auth/login", UserControllers.login);
 
-  const token = jwt.sign(
-    {
-      email: req.body.email,
-      password: req.body.password,
-      fullName: "Karl",
-    },
-
-    "secret123"
-  );
-
-  res.json({
-    success: true,
-    token,
-  });
-});
+app.get("/auth/me", checkAuth, UserControllers.getMe);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
