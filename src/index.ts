@@ -9,11 +9,9 @@ import {
   postCreateValidation,
 } from "./validations";
 
-import { checkAuth } from "./utils/checkAuth";
+import { checkAuth, handleValidationErrors } from "./utils/";
 
-import * as UserController from "./controllers/UserController";
-import * as PostController from "./controllers/PostController";
-import { handleValidationErrors } from "./utils/handleValidationErrors";
+import { UserController, PostController } from "./controllers";
 
 dotenv.config();
 
