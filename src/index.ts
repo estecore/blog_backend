@@ -2,11 +2,11 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-import { registerValidation } from "./validations/auth";
+import { loginValidation, registerValidation } from "./validations";
 
 import { checkAuth } from "./utils/checkAuth";
 
-import * as UserControllers from "./controllers/UserControllers";
+import * as UserController from "./controllers/UserController";
 
 dotenv.config();
 
@@ -26,11 +26,11 @@ const app = express();
 
 app.use(express.json());
 
-app.post("/auth/register", registerValidation, UserControllers.register);
+app.post("/auth/register", registerValidation, UserController.register);
 
-app.post("/auth/login", UserControllers.login);
+app.post("/auth/login", loginValidation, UserController.login);
 
-app.get("/auth/me", checkAuth, UserControllers.getMe);
+app.get("/auth/me", checkAuth, UserController.getMe);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
