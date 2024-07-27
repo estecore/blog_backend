@@ -13,6 +13,7 @@ import { checkAuth } from "./utils/checkAuth";
 
 import * as UserController from "./controllers/UserController";
 import * as PostController from "./controllers/PostController";
+import { handleValidationErrors } from "./utils/handleValidationErrors";
 
 dotenv.config();
 
@@ -44,8 +45,18 @@ const upload = multer({ storage });
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-app.post("/auth/register", registerValidation, UserController.register);
-app.post("/auth/login", loginValidation, UserController.login);
+app.post(
+  "/auth/register",
+  registerValidation,
+  handleValidationErrors,
+  UserController.register
+);
+app.post(
+  "/auth/login",
+  loginValidation,
+  handleValidationErrors,
+  UserController.login
+);
 app.get("/auth/me", checkAuth, UserController.getMe);
 
 app.post(
@@ -61,9 +72,21 @@ app.post(
 
 app.get("/posts", PostController.getAll);
 app.get("/posts/:id", PostController.getOne);
-app.post("/posts", checkAuth, postCreateValidation, PostController.create);
+app.post(
+  "/posts",
+  checkAuth,
+  postCreateValidation,
+  handleValidationErrors,
+  PostController.create
+);
 app.delete("/posts/:id", checkAuth, PostController.remove);
-app.patch("/posts/:id", checkAuth, postCreateValidation, PostController.update);
+app.patch(
+  "/posts/:id",
+  checkAuth,
+  postCreateValidation,
+  handleValidationErrors,
+  PostController.update
+);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
