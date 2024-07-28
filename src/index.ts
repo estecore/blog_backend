@@ -3,6 +3,7 @@ import multer, { StorageEngine } from "multer";
 import mongoose, { Callback } from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import fs from "fs";
 
 import {
   registerValidation,
@@ -33,6 +34,9 @@ const app = express();
 
 const storage: StorageEngine = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb: Callback) => {
+    if (fs.existsSync("uploads")) {
+      fs.mkdirSync("uploads");
+    }
     cb(null, "uploads");
   },
   filename: (req: Request, file: Express.Multer.File, cb: Callback) => {
