@@ -1,10 +1,8 @@
-import express, { Request, Response } from "express";
-import multer, { StorageEngine } from "multer";
-import mongoose, { Callback } from "mongoose";
+import express, { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
+import { upload, uploadDirPath } from "./config/multerConfig";
 
 import {
   registerValidation,
@@ -33,22 +31,6 @@ mongoose
 
 const app = express();
 
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage: StorageEngine = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb: Callback) => {
-    cb(null, uploadDir);
-  },
-  filename: (req: Request, file: Express.Multer.File, cb: Callback) => {
-    cb(null, file.originalname);
-  },
-});
-
-const upload = multer({ storage });
-
 const corsOptions = {
   origin: FRONTEND_URL,
   optionsSuccessStatus: 200,
@@ -56,7 +38,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use("/uploads", express.static(uploadDir));
+app.use("/uploads", express.static(uploadDirPath));
 
 app.post(
   "/auth/register",
@@ -64,12 +46,14 @@ app.post(
   handleValidationErrors,
   UserController.register
 );
+
 app.post(
   "/auth/login",
   loginValidation,
   handleValidationErrors,
   UserController.login
 );
+
 app.get("/auth/me", checkAuth, UserController.getMe);
 
 app.post(
@@ -77,8 +61,11 @@ app.post(
   checkAuth,
   upload.single("image"),
   (req: Request, res: Response) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
     res.json({
-      url: `/uploads/${req?.file?.originalname}`,
+      url: `/uploads/${req.file.originalname}`,
     });
   }
 );
@@ -103,6 +90,11 @@ app.patch(
   handleValidationErrors,
   PostController.update
 );
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something went wrong!" });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
