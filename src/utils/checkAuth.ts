@@ -1,5 +1,8 @@
 import { Request as ExRequest, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 interface DecodedToken extends JwtPayload {
   _id: string;
