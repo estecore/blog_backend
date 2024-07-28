@@ -21,10 +21,15 @@ export const getLastTags = async (req: Request, res: Response) => {
 
 export const getAll = async (req: Request, res: Response) => {
   try {
-    const posts = await PostModel.find();
+    const posts = await PostModel.find()
+      .populate({
+        path: "user",
+        select: "avatarUrl fullName additionalText",
+      })
+      .exec();
     res.json(posts);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
       message: "Failed to get posts",
     });
@@ -35,36 +40,26 @@ export const getOne = async (req: Request, res: Response) => {
   try {
     const postId = req.params.id;
 
-    PostModel.findOneAndUpdate(
-      {
-        _id: postId,
-      },
-      {
-        $inc: { viewsCount: 1 },
-      },
-      {
-        returnDocument: "after",
-      }
+    const post = await PostModel.findOneAndUpdate(
+      { _id: postId },
+      { $inc: { viewsCount: 1 } },
+      { new: true }
     )
-      .then((doc) => {
-        if (!doc) {
-          return res.status(404).json({
-            message: "Post not found",
-          });
-        }
-
-        res.json(doc);
+      .populate({
+        path: "user",
+        select: "avatarUrl fullName additionalText",
       })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({
-          message: "Failed to get post",
-        });
-      });
+      .exec();
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.json(post);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
-      message: "Failed to get posts",
+      message: "Failed to get post",
     });
   }
 };
@@ -72,19 +67,22 @@ export const getOne = async (req: Request, res: Response) => {
 //  ================= TODO change any type ====================
 export const create = async (req: any, res: Response) => {
   try {
+    const { title, text, imageUrl, tags } = req.body;
+    const userId = req.userId;
+
     const doc = new PostModel({
-      title: req.body.title,
-      text: req.body.text,
-      imageUrl: req.body.imageUrl,
-      tags: req.body.tags.split(","),
-      user: req.userId,
+      title,
+      text,
+      imageUrl,
+      tags: tags.split(","),
+      user: userId,
     });
 
     const post = await doc.save();
 
     res.json(post);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
       message: "Failed to create post",
     });
@@ -127,17 +125,17 @@ export const remove = async (req: Request, res: Response) => {
 export const update = async (req: any, res: Response) => {
   try {
     const postId = req.params.id;
+    const { title, text, imageUrl, tags } = req.body;
+    const userId = req.userId;
 
-    await PostModel.updateOne(
+    const result = await PostModel.updateOne(
+      { _id: postId },
       {
-        _id: postId,
-      },
-      {
-        title: req.body.title,
-        text: req.body.text,
-        imageUrl: req.body.imageUrl,
-        tags: req.body.tags.split(","),
-        user: req.userId,
+        title,
+        text,
+        imageUrl,
+        tags: tags.split(","),
+        user: userId,
       }
     );
 
@@ -145,7 +143,7 @@ export const update = async (req: any, res: Response) => {
       success: true,
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
       message: "Failed to update post",
     });
