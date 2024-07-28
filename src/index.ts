@@ -19,7 +19,7 @@ if (!process.env.MONGO_CONNECT) {
   throw new Error("MONGO_CONNECT is not defined");
 }
 
-const PORT = process.env.PORT || 1337;
+const PORT = process.env.PORT || 1234;
 const MONGO_CONNECT = process.env.MONGO_CONNECT;
 
 mongoose

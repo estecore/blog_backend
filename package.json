@@ -4,7 +4,7 @@
   "description": "Backend for blog website by Estecore",
   "main": "index.ts",
   "scripts": {
-    "dev": "npx nodemon --port 1337",
+    "dev": "npx nodemon --port 1234",
     "start": "npm run build && node build/index.js",
     "check": "git fetch && git pull && npm i",
     "commit": "git add . && cz && git push"
