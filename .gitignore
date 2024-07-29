@@ -81,6 +81,7 @@ public/
 # Hidden files
 .*
 !.gitignore
+uploads
 
 # Miscellaneous
 *.bak
