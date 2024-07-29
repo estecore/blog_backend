@@ -1,8 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+
 import { connectToDatabase } from "./config/db";
 import { corsMiddleware } from "./config/cors";
+
 import { errorHandler } from "./middlewares/errorHandler";
+
 import authRoutes from "./routes/authRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import postRoutes from "./routes/postRoutes";
@@ -20,6 +25,13 @@ const app = express();
 
 app.use(corsMiddleware);
 app.use(express.json());
+
+const uploadDir = path.resolve(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+app.use("/uploads", express.static(uploadDir));
 
 app.use("/auth", authRoutes);
 app.use("/upload", uploadRoutes);
