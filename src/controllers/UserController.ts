@@ -6,6 +6,8 @@ import bcrypt from "bcrypt";
 
 import { UserModel } from "../models/User";
 
+import { CustomRequest } from "../types";
+
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
@@ -88,8 +90,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-//  ================= TODO change any type ====================
-export const getMe = async (req: any, res: Response) => {
+export const getMe = async (req: CustomRequest, res: Response) => {
   try {
     const user = await UserModel.findById(req.userId);
 
