@@ -1,6 +1,18 @@
 import { Request, Response } from "express";
 import { PostModel } from "../models/Post";
 import { formatDate } from "../utils";
+import { SortBy, SortOrder } from "../types";
+
+interface CreateUpdatePostBody {
+  title: string;
+  text: string;
+  imageUrl?: string;
+  tags: string;
+}
+
+interface CustomRequest extends Request {
+  userId?: string;
+}
 
 export const getLastTags = async (req: Request, res: Response) => {
   try {
@@ -25,8 +37,22 @@ export const getLastTags = async (req: Request, res: Response) => {
 
 export const getAll = async (req: Request, res: Response) => {
   try {
+    const {
+      sortBy = "createdAt",
+      order = "desc",
+    }: { sortBy?: SortBy; order?: "asc" | "desc" } = req.query;
+
+    const sortOrder: SortOrder = order === "desc" ? -1 : 1;
+
+    const sortCriteria: { [key in SortBy]?: SortOrder } = {
+      [sortBy]: sortOrder,
+    };
+
+    if (sortBy !== "viewsCount") sortCriteria["viewsCount"] = sortOrder;
+    if (sortBy !== "createdAt") sortCriteria["createdAt"] = sortOrder;
+
     const posts = await PostModel.find()
-      .sort({ createdAt: -1 })
+      .sort(sortCriteria)
       .populate({
         path: "user",
         select: "avatarUrl fullName additionalText",
@@ -82,11 +108,14 @@ export const getOne = async (req: Request, res: Response) => {
   }
 };
 
-//  ================= TODO change any type ====================
-export const create = async (req: any, res: Response) => {
+export const create = async (req: CustomRequest, res: Response) => {
   try {
-    const { title, text, imageUrl, tags } = req.body;
+    const { title, text, imageUrl, tags }: CreateUpdatePostBody = req.body;
     const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const doc = new PostModel({
       title,
@@ -139,12 +168,15 @@ export const remove = async (req: Request, res: Response) => {
   }
 };
 
-//  ================= TODO change any type ====================
-export const update = async (req: any, res: Response) => {
+export const update = async (req: CustomRequest, res: Response) => {
   try {
     const postId = req.params.id;
-    const { title, text, imageUrl, tags } = req.body;
+    const { title, text, imageUrl, tags }: CreateUpdatePostBody = req.body;
     const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const result = await PostModel.updateOne(
       { _id: postId },
