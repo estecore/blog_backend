@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import { PostModel } from "../models/Post";
+import { formatDate } from "../utils";
 
 export const getLastTags = async (req: Request, res: Response) => {
   try {
-    const posts = await PostModel.find().limit(5).exec();
+    const posts = await PostModel.find()
+      .limit(5)
+      .sort({ createdAt: -1 })
+      .exec();
 
     const tags = posts
       .map((post) => post.tags)
@@ -22,12 +26,20 @@ export const getLastTags = async (req: Request, res: Response) => {
 export const getAll = async (req: Request, res: Response) => {
   try {
     const posts = await PostModel.find()
+      .sort({ createdAt: -1 })
       .populate({
         path: "user",
         select: "avatarUrl fullName additionalText",
       })
       .exec();
-    res.json(posts);
+
+    const formattedPosts = posts.map((post) => ({
+      ...post.toObject(),
+      createdAt: formatDate(post.createdAt),
+      updatedAt: formatDate(post.updatedAt),
+    }));
+
+    res.json(formattedPosts);
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -55,7 +67,13 @@ export const getOne = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    res.json(post);
+    const formattedPost = {
+      ...post.toObject(),
+      createdAt: formatDate(post.createdAt),
+      updatedAt: formatDate(post.updatedAt),
+    };
+
+    res.json(formattedPost);
   } catch (err) {
     console.error(err);
     res.status(500).json({
