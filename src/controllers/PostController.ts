@@ -1,18 +1,12 @@
 import { Request, Response } from "express";
 import { PostModel } from "../models/Post";
 import { formatDate } from "../utils";
-import { SortBy, SortOrder } from "../types";
-
-interface CreateUpdatePostBody {
-  title: string;
-  text: string;
-  imageUrl?: string;
-  tags: string;
-}
-
-interface CustomRequest extends Request {
-  userId?: string;
-}
+import {
+  SortBy,
+  SortOrder,
+  CreateUpdatePostBody,
+  CustomRequest,
+} from "../types";
 
 export const getLastTags = async (req: Request, res: Response) => {
   try {
@@ -163,7 +157,7 @@ export const remove = async (req: Request, res: Response) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: "Failed to get posts",
+      message: "Failed to delete post",
     });
   }
 };

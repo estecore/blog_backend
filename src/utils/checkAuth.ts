@@ -1,6 +1,8 @@
-import { Request as ExRequest, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
+
+import { CustomRequest } from "../types";
 
 dotenv.config();
 
@@ -8,8 +10,11 @@ interface DecodedToken extends JwtPayload {
   _id: string;
 }
 
-//  ================= TODO change any type ====================
-export const checkAuth = (req: any, res: Response, next: NextFunction) => {
+export const checkAuth = (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const token = (req.headers.authorization || "").replace(/Bearer\s?/, "");
 
   if (!token) {
