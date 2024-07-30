@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "dev": "npx nodemon --port 1234",
+    "build": "npx tsc",
     "start": "npm run build && node build/index.js",
     "check": "git fetch && git pull && npm i",
     "commit": "git add . && cz && git push"

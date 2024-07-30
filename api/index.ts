@@ -26,12 +26,12 @@ const app = express();
 app.use(corsMiddleware);
 app.use(express.json());
 
-const uploadDir = path.resolve(__dirname, "../uploads");
+const uploadDir = path.join("/tmp/uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-app.use("/uploads", express.static(uploadDir));
+app.use("/tmp/uploads", express.static(uploadDir));
 
 app.use("/auth", authRoutes);
 app.use("/upload", uploadRoutes);
@@ -47,3 +47,5 @@ const startServer = async () => {
 };
 
 startServer();
+
+export default app;

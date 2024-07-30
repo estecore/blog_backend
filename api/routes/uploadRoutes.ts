@@ -8,7 +8,11 @@ router.post("/", checkAuth, upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
-  res.json({ url: `/uploads/${req.file.originalname}` });
+
+  const fileUrl = `${req.protocol}://${req.get("host")}/tmp/uploads/${
+    req.file.filename
+  }`;
+  res.json({ url: fileUrl });
 });
 
 export default router;
