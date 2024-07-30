@@ -2,7 +2,7 @@ import multer, { StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 
-const uploadDir = path.resolve(__dirname, "../../uploads");
+const uploadDir = path.join("/tmp/uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -12,7 +12,7 @@ const storage: StorageEngine = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
