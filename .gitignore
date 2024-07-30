@@ -110,3 +110,4 @@ firebase-debug.log
 
 # VS Code settings
 .history/
+.vercel
